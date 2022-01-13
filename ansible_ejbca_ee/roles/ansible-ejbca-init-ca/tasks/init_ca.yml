@@ -6,11 +6,43 @@
 - name: Copy {{ item.caname }} Token properties file is copied over
   template:
     src: "catoken_template.properties.j2"
-    dest: "{{ ejbca_home }}/../ejbca-custom/conf/{{ item.caname }}.catoken.properties"
+    dest: "{{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties"
     owner: "{{ ejbca_user }}"
     group: "{{ ejbca_group }}"
   #when: item.tokentype == "org.cesecore.keys.token.PKCS11CryptoToken"
   no_log: true
+  when: not_saas_deployment is defined
+
+# SaaS Deployment Block
+- name: Create and Copy catoken.properties file
+  block:
+
+    - name: Check for deployement cache directory
+      stat:
+        path: "{{ deployment_cache }}"
+
+      register: token_props_dir
+    
+    - debug:
+        var: token_props_dir
+
+    - name: Create deployment cache directory
+      file:
+        path: "{{ deployment_cache }}"
+        state: directory
+      when: not token_props_dir.stat.exists
+
+    - name: Template {{ item.caname }} Token properties file to local file    
+      template:
+        src: "catoken_template.properties.j2"
+        dest: "{{ deployment_cache }}/{{ item.caname}}.catoken.properties"
+
+    - name: Copy {{ item.came }} Token properties file to container
+      shell: >
+        cat "{{ deployment_cache }}/{{ item.caname}}.catoken.properties" | {{ container_cli }} "--" sh -c "cat > 
+        {{ ejbca_home }}/conf/{{ item.caname}}.catoken.properties"
+  
+  when: saas_deployment is defined
 
 - name: Init Root or Self Signed Issuing CA
   block:
@@ -21,7 +53,7 @@
        --caname "{{ item.caname }}"
        --dn "{{ item.dn }}"
        --tokenName {{ item.caname }}
-       --tokenprop "{{ ejbca_home }}/../ejbca-custom/conf/{{ item.caname }}.catoken.properties"
+       --tokenprop "{{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties"
        {% for val in item.crypto_token %}{% if 'sign' == val.type %}
        --keyspec "{{ val.key_size }}"
        --keytype "{{ val.key_type }}" 
@@ -39,7 +71,8 @@
       changed_when: initializing_management_ca.rc == 0
 
   when:
-    - item.rootDn is not defined 
+    - item.rootDn is not defined
+    - saas_deployment is not defined
 
 - name: Init Policy or Sub CA with local Root CA
   block:
@@ -53,17 +86,13 @@
       become: yes
       become_user: "{{ ejbca_user }}"
 
-    #- debug:
-    #    var: root_ca_id.results
-    # --signedby "{{ item.stdout_lines[2].split(' ')[2] }}"
-
     - name: Create {{ item.caname }}
       command: >
        "{{ ejbca_sh }}" ca init
        --caname "{{ item.caname }}"
        --dn "{{ item.dn }}"
        --tokenName {{ item.caname }}
-       --tokenprop "{{ ejbca_home }}/../ejbca-custom/conf/{{ item.caname }}.catoken.properties"
+       --tokenprop "{{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties"
        {% for val in item.crypto_token %}{% if 'sign' == val.type %}
        --keyspec "{{ val.key_size }}"
        --keytype "{{ val.key_type }}" 
@@ -84,6 +113,7 @@
   when: 
     - item.rootDn is defined
     - item.rootDn != "External"
+    - saas_deployment is not defined
 
 - name: Init CA to create a CSR to sign with an external Root CA
   block:
@@ -110,11 +140,11 @@
 
     - name: Create a CA CSR to be signed by an external CA for {{ item.caname }}
       command: >
-       "{{ ejbca_sh }}" ca init
+       {{ ejbca_sh }}" ca init
        --caname "{{ item.caname }}"
        --dn "{{ item.dn }}"
-       --tokenName {{ item.caname }}
-       --tokenprop "{{ ejbca_home }}/../ejbca-custom/conf/{{ item.caname }}.catoken.properties"
+       --tokenName {{ item.crypto_token_name }}
+       --tokenprop "{{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties"
        {% for val in item.crypto_token %}{% if 'sign' == val.type %}
        --keyspec "{{ val.key_size }}"
        --keytype "{{ val.key_type }}" 
@@ -124,7 +154,7 @@
        --policy "{{ item.policy }}"
        {% if item.subjectaltname is defined %}--subjectaltname "{{ item.subjectaltname }}" {% endif %}
        --signedby "{{ item.rootDn }}"
-       -externalcachain "/var/tmp/{{ item.external_root_cachain_file | basename }}"
+       -externalcachain "/var/tmp/{{ item.external_root_cachain_file | basename }}
       args:
         chdir: "{{ ejbca_home }}"
       no_log: true
@@ -152,3 +182,91 @@
   when: 
     - item.rootDn is defined
     - item.rootDn == "External"
+    - saas_deployment is not defined
+
+# SaaS Deployment Block
+- name: Init Root or Self Signed Issuing CA
+  block:
+
+    - name: Create {{ item.caname }}
+      command: >
+       {{ ejbca_sh }} ca init
+       --caname {{ item.caname }}
+       --dn {{ item.dn }}
+       --tokenName {{ item.crypto_token_name }}
+       --tokenprop {{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties
+       {% for val in item.crypto_token %}{% if 'sign' == val.type %}
+       --keyspec {{ val.key_size }}
+       --keytype {{ val.key_type }}
+       {% endif %}{% endfor %}
+       -s {{ item.signalg }}
+       -v {{ item.validity }}
+       --policy {{ item.policy }}
+       {% if item.subjectaltname is defined %}--subjectaltname {{ item.subjectaltname }} {% endif %}
+       -certprofile {{ item.certprofile }}
+      no_log: true
+      register: initializing_management_ca
+      failed_when: initializing_management_ca.rc >= 2
+      changed_when: initializing_management_ca.rc == 0
+
+    - debug:
+        var: initializing_management_ca
+
+  when:
+    - item.rootDn is not defined
+    - saas_deployment is defined
+
+# SaaS Deployment Block
+- name: Init CA to create a CSR to sign with an external Root CA
+  block:
+
+    - name: Upload external CA chain from Ansible controller for creating an External CA {{ item.caname }}
+      shell: >
+        cat "{{ ejbca_cacrt_dir_output }}/{{ root_ca_cert }}" | {{ container_cli }}  "--" sh -c "cat > /var/tmp/{{ root_ca_cert }}"
+
+    - name: Create a CA CSR to be signed by an external CA for {{ item.caname }}
+      command: >
+       {{ ejbca_sh }} ca init
+       --caname {{ item.caname }}
+       --dn {{ item.dn }}
+       --tokenName {{ item.crypto_token_name }}
+       --tokenprop {{ ejbca_home }}/conf/{{ item.caname }}.catoken.properties
+       {% for val in item.crypto_token %}{% if 'sign' == val.type %}
+       --keyspec {{ val.key_size }}
+       --keytype {{ val.key_type }}
+       {% endif %}{% endfor %}
+       -s {{ item.signalg }}
+       -v {{ item.validity }}
+       --policy {{ item.policy }}
+       {% if item.subjectaltname is defined %}--subjectaltname {{ item.subjectaltname }} {% endif %}
+       --signedby {{ item.rootDn }}
+       -externalcachain /var/tmp/{{ root_ca_cert }}
+      no_log: true
+      register: initializing_sub_ca_csr
+      failed_when: initializing_sub_ca_csr.rc >= 2
+      changed_when: initializing_sub_ca_csr.rc == 0
+
+    - debug:
+        var: initializing_sub_ca_csr
+
+    - name: Check for local CA CSRs directory
+      stat:
+        path: "{{ ejbca_csr_dir_output }}"
+      register: ejbca_csr_dir_output_check
+        
+    - name: Create local CA CSRs directory
+      file:
+        path: "{{ ejbca_csr_dir_output }}"
+        state: directory
+      when: not ejbca_csr_dir_output_check.stat.exists
+
+    - name: Copy the {{ item.caname }}_csr.der CSR locally 
+      shell: >
+        {{ container_cli }} -- cat /opt/primekey/{{ item.caname }}_csr.der > {{ ejbca_csr_dir_output }}/{{ item.caname }}_csr.der
+      # no_log: true
+      register: copy_down_csr
+
+  when: 
+    - item.rootDn is defined
+    - item.rootDn == "External"
+    - saas_deployment is defined

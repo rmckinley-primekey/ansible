@@ -1,0 +1,37 @@
+---
+
+- name: Create End Entity
+  block:
+
+      - name: Add {{ item.username }} Entity to Root CA
+        command: >
+          {{ ejbca_sh }} ra addendentity
+          --username {{ item.caname}}
+          --password {{  item.entity_pass }}
+          --dn {{ item.dn }}
+          --caname {{ item.root_ca_name }}
+          --type 1
+          --token {{ item.token | default ('USERGENERATED')}}
+          --certprofile {{ item.certprofile }}
+          --eeprofile {{ item.eeprofile }}
+        register: ra_addIdent_result
+        tags: certreq-cli-batch
+#        no_log: true
+        failed_when: ra_addIdent_result.rc >= 2
+        changed_when: ra_addIdent_result.rc == 0
+
+      # - name: Set password for {{ item.username }}
+      #   command: >
+      #     {{ ejbca_sh }} ra setclearpwd
+      #     --username {{ item.username }}
+      #     --password {{ item.password }}
+      #   become: yes
+      #   register: ra_setpwd_result
+      #   tags: certreq-cli-batch
+      #   no_log: true
+      #   failed_when: ra_setpwd_result.rc >= 2
+      #   changed_when: ra_setpwd_result.rc == 0
+
+  when: 
+    - create_end_entities is defined
+    - create_end_entities is true

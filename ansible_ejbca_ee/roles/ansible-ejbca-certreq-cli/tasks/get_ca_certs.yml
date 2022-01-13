@@ -11,7 +11,6 @@
   file:
     path: "{{ ejbca_cacrt_dir_output }}"
     state: directory
-  delegate_to: localhost
   when: not ejbca_cacrt_dir_output_exists.stat.exists
 
 - name: Find what cert files are already downloaded
@@ -21,6 +20,8 @@
     recurse: yes
     patterns: "*.crt"
   register: find_local_ca_certs
+  when: 
+    - saas_deployment is not defined
 
 - name: Combine files into a list
   set_fact:
@@ -30,6 +31,7 @@
     label: "{{ item.path | basename }}"
   when: 
     - find_local_ca_certs is defined
+    - saas_deployment is not defined
 
 #- name: Debug find_local_ca_certs
 #  debug:
@@ -68,3 +70,26 @@
         path: '{% if item.fullchain is defined and item.fullchain is sameas true %}"{{ identity_batch_output_dir }}/{{ item.caname }}-fullchain.crt"{% else %}"{{ identity_batch_output_dir }}/{{ item.caname }}.crt"{% endif %}'
         state: absent
       tags: ejbca-cli-cacert
+
+  when: not saas_deployment is defined
+
+#SaaS Deployment Block
+- name: Export CA file
+  block:
+
+    - name: Get the {{ item.caname }} certificate
+      command: >
+        {{ ejbca_sh }} ca getcacert 
+        --caname {{ item.caname }}
+        -f /var/tmp/{{ item.caname }}.crt
+      register: ejbca_get_ca_chain
+      failed_when: ejbca_get_ca_chain.rc >= 2
+      changed_when: ejbca_get_ca_chain.rc == 0
+      tags: ejbca-cli-cacert
+
+    - name: Copy {{ item.caname }} Chain file to Ansible controller
+      shell: >
+        {{ container_cli }} -- cat /var/tmp/{{ item.caname }}.crt > {{ ejbca_cacrt_dir_output }}/{{ item.caname }}.crt
+      tags: ejbca-cli-cacert
+  
+  when: saas_deployment is defined

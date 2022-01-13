@@ -1,0 +1,52 @@
+---
+
+# This play is designed for a Fully Automated PKI in SaaS
+
+- hosts: dev
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/saas_deployment
+  vars:
+    - add_certification_authorities: "{{ root_add_certification_authorities }}"
+    - root_node_play: true
+    - prep_config_dump: true
+  roles: 
+    - ansible-saas-deployment
+    - ansible-ejbca-deploy-pki-root-ca-node
+    - ansible-ejbca-crl-dp
+
+- hosts: dev
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/saas_deployment
+  vars:
+    - add_certification_authorities: "{{ sub_add_certification_authorities }}"
+    - sub_node_play: true
+  roles: 
+    - ansible-saas-deployment
+    - ansible-ejbca-deploy-pki-ext-signed-sub-1
+
+- hosts: dev
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/saas_deployment
+  vars:
+    - add_certification_authorities: "{{ sub_add_certification_authorities }}"
+    - root_node_play: true
+    - create_end_entities: true
+  roles: 
+    - ansible-saas-deployment
+    - ansible-ejbca-deploy-pki-ext-root-sign-ca
+
+- hosts: dev
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/saas_deployment
+  vars:
+    - sub_node_play: true
+    - post_signing: true
+    - add_certification_authorities: "{{ sub_add_certification_authorities }}"
+  roles: 
+    - ansible-saas-deployment
+    - ansible-ejbca-deploy-pki-ext-signed-sub-3
+    # - ansible-ejbca-crl-dp

@@ -1,6 +1,15 @@
 ---
 # tasks file for roles/ansible-ejbca-deploy-pki-ext-signed-sub-3
 
+- name: Import External Root CA certificate
+  include_role: 
+    name: ansible-ejbca-import-ext-ca
+    tasks_from: add_external_root_ca
+  loop: "{{ add_certification_authorities }}"
+  no_log: true
+  when:
+    - add_certification_authorities[0] is defined
+
 - name: Import signed CA certificate
   include_role: 
     name: ansible-ejbca-import-ext-ca

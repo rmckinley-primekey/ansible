@@ -1,0 +1,97 @@
+Object Type: End Entity Profile
+Version: 1
+Name: {{ item.eename}}
+Password Required: {{ item.password_required }}
+E-Mail Used: {{ item.email_used }}
+Description: {{ item.description }}
+Default CA: {{ item.default_ca }}
+Available CAs:
+{% for val in item.available_cas %}
+- {{ val.ca }}
+{% endfor %}
+Default Certificate Profile: {{ item.default_certificate_profile }}
+Available Certificate Profiles:
+{% for val in item.available_certificate_profiles %}
+- {{ val.name }}
+{% endfor %}
+Default Token Type: {{ item.default_token_type }}
+Available Token Types:
+{% for val in item.available_token_types %}
+- {{ val.type }}
+{% endfor %}
+Issuance Revocation Reason Modifiable: false
+CA Browser Forum Organization Identifier Modifiable: false
+Subject DN:
+{% if item.subject_dn.CN is defined %}
+  CN:
+{% for cn in item.subject_dn.CN %}
+  - Required: {{ cn.required }}
+    Modifiable: {{ cn.modifiable }}
+{% if cn.name is defined %}
+    Values:
+    - {{ cn.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.OU is defined %}
+  OU:
+{% for ou in item.subject_dn.OU %}
+  - Required: {{ ou.required }}
+    Modifiable: {{ ou.modifiable }}
+{% if ou.name is defined %}
+    Values:
+    - {{ ou.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.L is defined %}
+  L:
+{% for l in item.subject_dn.L %}
+  - Required: {{ l.required }}
+    Modifiable: {{ l.modifiable }}
+{% if l.name is defined %}
+    Values:
+    - {{ l.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.ST is defined %}
+  ST:
+{% for st in item.subject_dn.ST %}
+  - Required: {{ st.required }}
+    Modifiable: {{ st.modifiable }}
+{% if st.name is defined %}
+    Values:
+    - {{ st.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.O is defined %}
+  O:
+{% for o in item.subject_dn.O %}
+  - Required: {{ o.required }}
+    Modifiable: {{ o.modifiable }}
+{% if o.name is defined %}
+    Values:
+    - {{ o.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.C is defined %}
+  C:
+{% for c in item.subject_dn.C %}
+  - Required: {{ c.required }}
+    Modifiable: {{ c.modifiable }}
+{% if c.name is defined %}
+    Values:
+    - {{ c.name|default('') }}
+{% endif %}{% endfor %}{% endif %}
+
+{% if item.subject_alternative_name is defined %}
+Subject Alternative Name:
+  UNIFORMRESOURCEID:
+{% for i2 in item.subject_alternative_name %}
+{% if 'UNIFORMRESOURCEID' is sameas i2.type %}
+  - Required: {{ i2.name|default('false') }}
+{% endif %}{% endfor %}
+{% endif %}

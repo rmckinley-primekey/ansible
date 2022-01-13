@@ -1,0 +1,602 @@
+---
+
+root_add_certification_authorities:
+#   - caname: "{{ root_ca }}"
+#     certprofile: "RootCA-{{ organizationNameShort }}-G3"
+#     dn: "CN={{ root_ca }},{{ organizationDistinguishedName }}"
+#     validity: "9132"
+#     validity_yml: "25y"
+#     policy: "null"
+#     signalg: "SHA256withECDSA"
+#     serial_number_octet_size: 20
+#     pre_produce_ocsp_responses: false
+#     store_responses_on_demand: false
+#     use_append_only_table: false
+#     use_utf8_in_policy_notice_text: false
+#     defaultCRLDP: "http://{{ root_fqdn }}/ejbca/publicweb/crls"
+#     skid_hash_used: true
+#     defaultOCSPServiceLocator: "http://{{ root_fqdn }}/ejbca/publicweb/status/ocsp"
+#     authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Root+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+#     certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Root+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+#     crlPeriod: 31104000000
+#     crlPeriod_yml: 12mo
+#     crlIssueInterval: 15552000000
+#     crlIssueInterval_yml: 6m
+#     crl_overlap_time: 0
+#     crl_overlap_time_yml: 0m
+#     delta_crl_period: 0m
+#     useLdapDnOrder: false
+#     enforce_unique_public_keys: true
+#     enforce_key_renewal: false
+#     enforce_unique_dn: true
+#     user_storage: true
+#     certificate_storage: true
+#     accept_revocations_for_non_existing_entries: false
+#     finish_user: true
+#     ca_healthcheck_enabled: true
+#     request_processor: 'null'
+#     cryptotoken_enable_auto_activate: false
+#     tokentype: "{{ crypto_type }}"
+#     tokenpass: "{{ root_keystore_pass }}"
+#     slot_identifier_type: "{{ slot_identifier_type }}"
+#     slot_identifier_value: "{{ slot_identifier_value }}"
+#     force_used_slots: true
+#     crypto_token_name: "{{ root_crypto_token_name }}"
+#     crypto_token:
+#       - key_label: "signKey001"
+#         key_size: P-256
+#         key_type: "ECDSA"
+#         type: sign
+#       - key_label: "defaultKey001"
+#         key_size: P-256
+#         key_type: "ECDSA"
+#         type: default
+#       - key_label: "testKey001"
+#         key_size: P-256
+#         key_type: "ECDSA"
+#         type: test
+
+sub_add_certification_authorities:
+  - caname: "{{ issuing_ca_1 }}"
+    certprofile: "INS02PG1-CP"
+    eeprofile: 'INS02PG1-EEP'
+    dn: "CN={{ issuing_ca_1 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_1 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_1 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_1 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_1 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_2 }}"
+    certprofile: "INS03PG1-CP"
+    eeprofile: 'INS03PG1-EEP'
+    dn: "CN={{ issuing_ca_2 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_2 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_2 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_2 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_2 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_3 }}"
+    certprofile: "INS04PG1-CP"
+    eeprofile: 'INS04PG1-EEP'
+    dn: "CN={{ issuing_ca_3 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_3 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_3 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_3 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_3 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_4 }}"
+    certprofile: "INS05PG1-CP"
+    eeprofile: 'INS05PG1-EEP'
+    dn: "CN={{ issuing_ca_4 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_4 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_4 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_4 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_4 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_5 }}"
+    certprofile: "INS06PG1-CP"
+    eeprofile: 'INS06PG1-EEP'
+    dn: "CN={{ issuing_ca_5 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_5 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_5 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_5 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_5 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_6 }}"
+    certprofile: "INS07PG1-CP"
+    eeprofile: 'INS07PG1-EEP'
+    dn: "CN={{ issuing_ca_6 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_6 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_6 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_6 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_6 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_7 }}"
+    certprofile: "PAR01PG1-CP"
+    eeprofile: 'PAR01PG1-EEP'
+    dn: "CN={{ issuing_ca_7 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_7 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_7 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_7 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_7 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test
+
+  - caname: "{{ issuing_ca_8 }}"
+    certprofile: "PAR02PG1-CP"
+    eeprofile: 'PAR02PG1-EEP'
+    dn: "CN={{ issuing_ca_8 }},{{ organizationDistinguishedName }}"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    validity: "5479"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "http://{{ issuing_fqdn }}/ejbca/publicweb/crls"
+    skid_hash_used: true
+    defaultOCSPServiceLocator: "http://{{ issuing_fqdn }}/ejbca/publicweb/status/ocsp"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 0
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: false
+    external_signed_ca_cert_file_local_repository: false
+    # external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    # external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file: "{{ issuing_ca_8 }}.pem"
+    cryptotoken_enable_auto_activate: true
+    token: USERGENERATED
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ issuing_keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ issuing_crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_8 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_8 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_8 }}001"
+        key_size: P-256
+        key_type: "ECDSA"
+        type: test

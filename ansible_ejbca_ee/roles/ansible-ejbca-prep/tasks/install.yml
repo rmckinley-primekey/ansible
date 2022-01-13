@@ -1,6 +1,6 @@
 ---
 
-- name: Install EPEL on CentOS/RedHat 7/8
+- name: Install EPEL
   package:
     name: epel-release
     state: present
@@ -9,17 +9,15 @@
 #TODO
 # Add install for Oracle EPEL repo
 
-- name: Install OpenJDK Development, unzip on Alma/CentOS/Oracle/RedHat/Rocky 8
+- name: Install OpenJDK Development, unzip CentOS/RHEL 8
   package:
     name: "{{ ejbca_packages_8 }}"
     state: present
   when: (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8") or
         (ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] == "8") or
-        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
-        (ansible_facts['distribution'] == "Rocky" and ansible_facts['distribution_major_version'] == "8") or
-        (ansible_facts['distribution'] == "AlmaLinux" and ansible_facts['distribution_major_version'] == "8")
+        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8")
 
-- name: Install OpenJDK Development, unzip, & Ant on CentOS/RedHat 7
+- name: Install OpenJDK Development, unzip, & Ant CentOS/RHEL 7
   package:
     name: "{{ ejbca_packages_7 }}"
     state: present
@@ -49,7 +47,7 @@
       when: 
         - use_local_repository|bool
 
-    - name: Download ant and check (sha256)
+    - name: Download ant with check (sha256)
       get_url:
         url: "{{ ant_url }}"
         dest: "{{ ejbca_root_dir }}"
@@ -63,7 +61,7 @@
         state: directory
         owner: "{{ ejbca_user }}"
         group: "{{ ejbca_group }}"
-      #when: not ant_dir_check.stat.exists
+      when: not ant_dir_check.stat.exists
 
     - name: Unarchive ant
       unarchive:
@@ -71,14 +69,14 @@
         dest: "{{ ejbca_root_dir }}/apache-ant"
         remote_src: True
         extra_opts: [--strip-components=1]
-      #when: not ant_dir_check.stat.exists
+      when: not ant_dir_check.stat.exists
 
     - name: Create link for ant
       file:
         src: "{{ ejbca_root_dir }}/apache-ant/bin/ant"
         dest: /usr/bin/ant
         state: link
-      #when: not ant_dir_check.stat.exists
+      when: not ant_dir_check.stat.exists
 
     - name: Remove ant archive
       file:

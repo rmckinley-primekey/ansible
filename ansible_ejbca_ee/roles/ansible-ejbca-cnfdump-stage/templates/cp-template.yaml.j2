@@ -1,0 +1,56 @@
+Object Type: Certificate Profile
+Version: 1
+Name: {{ item.cpname }}
+Type: {{ item.type }}
+Available Key Algorithms: 
+- {{ item.available_key_algorithms }}
+Available Elliptic Curves:
+- {{ item.available_elliptic_curves }}
+Available Bit Lengths:
+{% for bit in item.available_bit_lengths %}
+- {{ bit }}
+{% endfor %}
+Signature Algorithm: {{ item.signature_algorithm }}
+Validity: {{ item.validity }}
+Description: {{ item.description }}
+Overridable Extension OIDs: [
+  ]
+Non-overridable Extension OIDs: [
+  ]
+Basic Constraints Used: false
+Key Usage:
+{% for val in item.key_usage %}
+- {{ val.name }}
+{% endfor %}
+Extended Key Usage Used: {{ item.extended_key_usage_used }}
+Extended Key Usage:
+{% for val in item.extended_key_usage %}
+- {{ val.name }}
+{% endfor %}
+Subject Alternative Name Used: {{ item.subject_alternative_name_used }}
+Issuer Alternative Name Used: {{ item.issuer_alternative_name_used }}
+CRL Distribution Point Used: true
+CRL Use CA Defined Settings: false
+CRL Distribution Point URI: http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl
+CRL Issuer: ''
+Authority Information Access Used: {{ item.authority_information_access_used }}
+OCSP Service Locator URL Is CA Defined: {{ item.ocsp_service_locator_URL_defined }}
+OCSP Issuer URL Is CA Defined: {{ item.ocsp_issuer_url_defined }}
+OCSP Issuer URLs:
+{% for val in item.ocsp_issuer_urls %}
+- {{ val.url }}
+{% endfor %}
+Certificate Extensions:
+{% for val in item.certificate_extensions %}
+- {{ val.name }}
+{% endfor %}
+OCSP No Check: {{ item.ocsp_no_check }}
+CVC Access Rights (Inspection System):
+{% for val in item.cvc_access_rights %}
+- {{ val.name }}
+{% endfor %}
+LDAP DN Order: {{ item.ldap_dn_order }}
+Available CAs:
+{% for val in item.available_cas %}
+- {{ val.ca }}
+{% endfor %}

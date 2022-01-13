@@ -1,0 +1,66 @@
+---
+
+#Customer Data
+organizationName: "rtest"
+organizationNameShort: "{{ organizationName }}"
+organizationNameCRL: "{{ organizationName }}"
+organizationDomainName: "{{ domain_name }}.us.dev.saas.primekey.com"
+organizationDistinguishedName: "O={{ organizationName }},C=US"
+countryName: US
+superAdminCn: "SuperAdmin"
+sharedVarsLocation: ~/ansible/ansibleCacheDir
+
+#General
+saas_deployment: true
+domain_name: rtest
+saas_context:
+ejbca_version: 7.8.1
+root_fqdn: "root.{{ organizationDomainName }}"
+issuing_fqdn: "issuing.{{ organizationDomainName }}"
+ejbca_sh: kubectl exec -i {{ ejbca_container_id }} -n {{ domain_name }} -c ejbca -- /opt/primekey/ejbca/bin/ejbca.sh
+container_cli: kubectl exec -i {{ ejbca_container_id }} -n {{ domain_name }} -c ejbca
+
+#Configdump
+configdump1_structure:
+  - certification-authorities
+  - certificate-profiles
+  - services
+
+configdump2_structure:
+  - end-entity-profiles
+
+configdump_home: "{{ playbook_dir }}/dump"
+
+#Crypto Token
+root_keystore_pass: 'ejbca_root:3lLxvd8Z2CJJpBI'
+issuing_keystore_pass: 'ejbca_issuing:tbWA4zsUmuXM5Gs'
+crypto_type: Pkcs11NgCryptoToken
+slot_identifier_value: cavium
+slot_identifier_type: "SLOT_LABEL"
+root_crypto_token_name: AWSCloudHSMRoot
+issuing_crypto_token_name: AWSCloudHSMIssuing
+
+#Ansible Controller Main Directories
+local_cache: "{{ playbook_dir }}/localcache"
+bastion_cache: "saas_deployment"
+
+#Container Dirs
+identity_batch_output_dir: /var/tmp
+ejbca_home: /opt/primekey/ejbca
+hsm_shared_library: '/opt/primekey/p11proxy-client/p11proxy-client.so'
+external_root_cachain_file: "{{ ejbca_csr_dir_output }}/{{ root_ca_cert }}"
+
+#CA
+root_ca_cert: "{{ root_ca }}.crt"
+root_ca: RT00-G3
+issuing_ca_1: RT01-G3
+issuing_ca_2: RT02-G3
+issuing_ca_3: RT03-G3
+issuing_ca_4: RT04-G3
+
+#RESTAPI
+root_rest_url: "https://{{ root_fqdn }}/ejbca/ejbca-rest-api/v1/configdump/configdump.zip"
+issuing_rest_url: "https://{{ issuing_fqdn }}/ejbca/ejbca-rest-api/v1/configdump/configdump.zip"
+client_cert: ~/Downloads/superadmin_rtest.p12
+client_cert_pass: "{{ encrypted_client_cert_pass| default('foo123') }}"
+encrypted_client_cert_pass: O(f+R4?F!Ig5

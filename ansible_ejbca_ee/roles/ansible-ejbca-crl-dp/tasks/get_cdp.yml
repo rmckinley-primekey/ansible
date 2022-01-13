@@ -1,0 +1,144 @@
+---
+
+# Get Hash Value
+- name: Get CA CRL Hash
+  block:
+
+    - name: Create local cache for CDPs
+      file:
+        path: "{{ deployment_cache }}/cdps"
+        state: directory
+
+    - block:
+
+      - name: Get sKIDHash
+        uri:
+          url: "http://{% if item.rootDn is not defined %}{{ root_fqdn}}{% else %}{{ issuing_fqdn}}/ejbca/publicweb/crls/search.cgi{% endif %}"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ deployment_cache }}/cdps/skid_hash"
+
+      - name: Grep {{ item.caname }} and sKIDHash
+        shell: grep '{{ item.caname }}' -A 2 "{{ deployment_cache }}/cdps/skid_hash" | grep 'sKIDHash' > "{{ deployment_cache }}/cdps/{{ item.caname }}_skid_hash"
+        register: skid_hash
+
+      - name: Parse Hash value
+        shell: sed -i '' 's/^.*\?sKIDHash=//' "{{ deployment_cache }}/cdps/{{ item.caname }}_skid_hash"
+
+      - name: Parse Hash value again
+        shell: sed -i '' 's/".*$//' "{{ deployment_cache }}/cdps/{{ item.caname }}_skid_hash"
+
+      when: item.skid_hash_used is defined and item.skid_hash_used is true
+
+    - block:
+
+      - name: Get iHash
+        uri:
+          url: "http://{% if item.rootDn is not defined %}{{ root_fqdn}}{% else %}{{ issuing_fqdn}}/ejbca/publicweb/crls/search.cgi{% endif %}"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ deployment_cache }}/cdps/ihash"
+
+      - name: Grep {{ item.caname }} and iHash
+        shell: grep '{{ item.caname }}' -A 2 "{{ deployment_cache }}/cdps/ihash" | grep 'iHash' > "{{ deployment_cache }}/cdps/{{ item.caname }}_ihash"
+        register: ihash
+
+      - name: Parse Hash value
+        shell: sed -i '' 's/^.*\?sKIDHash=//' "{{ deployment_cache }}/cdps/{{ item.caname }}_ihash"
+
+      - name: Parse Hash value again
+        shell: sed -i '' 's/".*$//' "{{ deployment_cache }}/cdps/{{ item.caname }}_ihash"
+
+      when: item.ihash_used is defined and item.ihash_used is true
+
+  when:
+      - not_saas_deployment is defined
+
+# SaaS Deployment Block
+- name: Get CA CRL Hash
+  block:
+
+    - block:
+
+      - name: Create local cache for CDPs
+        file:
+          path: "{{ local_cache }}/cdps"
+          state: directory
+        delegate_to: localhost
+
+      - name: Get sKIDHash
+        delegate_to: localhost
+        uri:
+          url: "http://{{ root_fqdn}}/ejbca/publicweb/crls/search.cgi"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ local_cache }}/cdps/skid_hash"
+        when: add_certification_authorities == root_add_certification_authorities
+
+      - name: Get sKIDHash
+        delegate_to: localhost
+        uri:
+          url: "http://{{ issuing_fqdn}}/ejbca/publicweb/crls/search.cgi"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ local_cache }}/cdps/skid_hash"
+        when: add_certification_authorities == sub_add_certification_authorities
+
+      - name: Grep {{ item.caname }} and sKIDHash
+        delegate_to: localhost
+        shell: grep '{{ item.caname }}' -A 2 "{{ local_cache }}/cdps/skid_hash" | grep 'sKIDHash' > "{{ local_cache }}/cdps/{{ item.caname }}_skid_hash"
+        register: skid_hash
+
+      - name: Parse Hash value
+        delegate_to: localhost
+        shell: sed -i '' 's/^.*\?sKIDHash=//' "{{ local_cache }}/cdps/{{ item.caname }}_skid_hash"
+
+      - name: Parse Hash value again
+        delegate_to: localhost
+        shell: sed -i '' 's/".*$//' "{{ local_cache }}/cdps/{{ item.caname }}_skid_hash"
+
+      when: item.skid_hash_used is defined and item.skid_hash_used is true
+
+    - block:
+
+      - name: Get iHash
+        delegate_to: localhost
+        uri:
+          url: "http://{{ root_fqdn}}/ejbca/publicweb/crls/search.cgi"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ local_cache }}/cdps/skid_hash"
+        when: add_certification_authorities == root_add_certification_authorities
+
+      - name: Get iHash
+        delegate_to: localhost
+        uri:
+          url: "http://{{ issuing_fqdn}}/ejbca/publicweb/crls/search.cgi"
+          method: GET
+          validate_certs: no
+          return_content: yes
+          dest: "{{ local_cache }}/cdps/i_hash"
+        when: add_certification_authorities == sub_add_certification_authorities
+
+      - name: Grep {{ item.caname }} and iHash
+        shell: grep '{{ item.caname }}' -A 2 "{{ local_cache }}/cdps/ihash" | grep 'iHash' > "{{ local_cache }}/cdps/{{ item.caname }}_ihash"
+        register: ihash
+        delegate_to: localhost
+
+      - name: Parse Hash value
+        delegate_to: localhost
+        shell: sed -i '' 's/^.*\?sKIDHash=//' "{{ local_cache }}/cdps/{{ item.caname }}_ihash"
+
+      - name: Parse Hash value again
+        delegate_to: localhost
+        shell: sed -i '' 's/".*$//' "{{ local_cache }}/cdps/ca_ihash"
+
+      when: item.ihash_used is defined and item.ihash_used is true
+
+  when:
+      - saas_deployment is defined

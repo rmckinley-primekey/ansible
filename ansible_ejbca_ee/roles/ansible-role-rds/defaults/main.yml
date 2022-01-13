@@ -2,10 +2,22 @@
 
 mariadb_packages:
   - python3-PyMySQL
+<<<<<<< HEAD
+<<<<<<< HEAD
+rhel_mariadb_packages:
+  - MySQL-python
+=======
 
 rhel_mariadb_packages:
   - MySQL-python
   
+>>>>>>> 01dc50dc3d081a7299d1415a683541e56dce2b93
+=======
+
+rhel_mariadb_packages:
+  - MySQL-python
+  
+>>>>>>> master
 mariadb_packages_8:
   - python3-PyMySQL
 
@@ -17,7 +29,15 @@ mariadb_users: []
 mariadb_root_password: ''
 
 mariadb_mirror: yum.mariadb.org
+<<<<<<< HEAD
+<<<<<<< HEAD
+mariadb_version: '10.4'
+=======
 mariadb_version: '10.5'
+>>>>>>> 01dc50dc3d081a7299d1415a683541e56dce2b93
+=======
+mariadb_version: '10.5'
+>>>>>>> master
 
 mariadb_configure_swappiness: true
 mariadb_swappiness: '10'
@@ -33,6 +53,9 @@ mariadb_server_cnf:
   log_error: /var/log/mariadb/mariadb.log
 
 # Custom configuration
+<<<<<<< HEAD
+mariadb_custom_cnf: {}
+=======
 mariadb_custom_cnf: {}
 
 # Name of the database
@@ -43,3 +66,8 @@ db_port: 3306
 
 # RDS host to connect to
 db_host: localhost
+<<<<<<< HEAD
+>>>>>>> 01dc50dc3d081a7299d1415a683541e56dce2b93
+=======
+>>>>>>> bfa88ec6e5e09059c41d6fd1a142986a4a3e302c
+>>>>>>> master

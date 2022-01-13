@@ -38,8 +38,13 @@
   register: p11ng_driver_check
   when: use_p11ng | bool
 
+<<<<<<< HEAD
+- block:
+  name: P11NG driver install
+=======
 - name: P11NG driver install
   block:
+>>>>>>> master
 
   - name: Download CloudHSM PKCS11 package
     get_url:
@@ -65,9 +70,14 @@
     path: /opt/PrimeKey
   register: organization_home_check
 
+<<<<<<< HEAD
+- block:
+  name: Liquidsec library and clientToolBox unzip
+=======
 
 - name: Liquidsec library and clientToolBox unzip
   block:
+>>>>>>> master
 
   - name: Unpack PrimeKey zip
     unarchive:
@@ -111,8 +121,14 @@
     - use_liquidsec is defined
     - use_liquidsec|bool
 
+<<<<<<< HEAD
+- block:
+  name: Configure Liquidesec
+
+=======
 - name: Configure Liquidesec
   block:
+>>>>>>> master
   - name: Create Liquidesec directory
     file:
       path: /home/wildfly/.liquidsec
@@ -165,5 +181,9 @@
  command: >
   {{ cloudhsm_home }}/bin/configure -m
  become: yes
+<<<<<<< HEAD
+ register: cloudhsm_mgmt_verify
+=======
  register: cloudhsm_mgmt_verify
  failed_when: cloudhsm_mgmt_verify.rc >= 2
+>>>>>>> master

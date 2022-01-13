@@ -1,0 +1,18 @@
+---
+
+# This play is designed for SaaS Deployments that do not have a Root CA configured
+# The play will create the Root CA keys, Root CA, Issuing CA keys, generate Issuing CA CSRs, and copy them locally for manually submission
+# Create a folder in the playbook directory called "ejbcaCaCerts" and place the signed Issuing CA certs after signing
+
+- hosts: dev
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/insulet_eu_deployment
+  vars:
+    - add_certification_authorities: "{{ root_add_certification_authorities }}"
+    - root_node_play: true
+    - prep_config_dump: true
+  roles:
+    - ansible-saas-deployment
+    #- ansible-ejbca-deploy-pki-root-ca-node
+    - ansible-ejbca-crl-dp

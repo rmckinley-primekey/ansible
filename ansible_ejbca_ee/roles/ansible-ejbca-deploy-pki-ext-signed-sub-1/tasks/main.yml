@@ -3,32 +3,31 @@
 
 - name: Suborindated CA Keys
   block:
- 
+
     - name: Generate Keys for Subordinated CA's using Client Toolbox
       include_role:
-        name: ansible-ejbca-ctb-keygen 
+        name: ansible-ejbca-ctb-keygen
       loop: "{{ add_certification_authorities |subelements('crypto_token') }}"
       loop_control:
         label: "{{ key_item.0.caname }}"
         loop_var: key_item
-      no_log: true
+      no_log: false
       tags: hsm_test, client_toolbox_key_generation
       when:
-        - clienttoolbox_key_generation is defined
-        - clienttoolbox_key_generation|bool
+        - clienttoolbox_key_generation is defined or clienttoolbox_key_generation|bool
         - ("org.cesecore.keys.token.PKCS11CryptoToken" in key_item.0.tokentype) or ("org.cesecore.keys.token.p11ng.cryptotoken.Pkcs11NgCryptoToken" in key_item.0.tokentype)
 
 #TODO
 # Add Configdump to import crypto tokens with >= 7.6.0
 
     - name: Create crypto tokens for Subordinated CA's
-      include_role: 
+      include_role:
         name: ansible-ejbca-crypto-token
         tasks_from: add_crypto_token
       loop: "{{ add_certification_authorities }}"
       no_log: true
       when:
-        - (clienttoolbox_key_generation is not defined) or (clienttoolbox_key_generation is defined and not clienttoolbox_key_generation|bool)
+        - clienttoolbox_key_generation is not defined or not clienttoolbox_key_generation|bool
 
     - name: Generate keys for Subordinated CA's on crypto token using EJBCA CLI
       include_role:
@@ -41,24 +40,26 @@
       no_log: true
       tags: key_generation
       when:
-        - (clienttoolbox_key_generation is not defined) or (clienttoolbox_key_generation is defined and not clienttoolbox_key_generation|bool)
+       - clienttoolbox_key_generation is not defined or not clienttoolbox_key_generation|bool
 
   when: add_certification_authorities[0] is defined
 
 - name: Check deployment
-  include_role: 
+  include_role:
     name: ansible-ejbca-restart-wildfly
   tags: check_deployment
-  when: 
-    - clienttoolbox_key_generation|bool or management_add_end_entities[0] is defined or management_add_administrators[0] is defined
+  when:
+    - saas_deployment is not defined
+    - clienttoolbox_key_generation is defined or clienttoolbox_key_generation|bool or management_add_end_entities[0] is defined or management_add_administrators[0] is defined
+
 
 - name: Use Configdump to create the CA's
   block:
   # NOTE - This does not work today EJBCA <= 7.7.x as configdump does not support creating external signed
-  #        sub CA'S     
+  #        sub CA'S
 
     - name: Prepare configdump template files
-      include_role: 
+      include_role:
         name: ansible-ejbca-cnfdump-stage
         tasks_from: config_configdump
       when:
@@ -73,29 +74,28 @@
       no_log: true
 
     - name: Import External CA's
-      include_role: 
+      include_role:
         name: ansible-ejbca-import-ext-ca
         tasks_from: add_external_root_ca
       loop: "{{ add_certification_authorities }}"
       no_log: true
       when:
         - item.rootDn == "External"
-      
+
     - name: Intialize Suborindated CA's with configdump
       command: "./dist/configdump/configdump.sh import --ignore-errors --overwrite update --non-interactive continue -l {{ ejbca_home }}/dump/subs --initialize"
       args:
         chdir: "{{ ejbca_home }}"
-      become: yes 
+      become: yes
       become_user: "{{ ejbca_user }}"
 
     - name: Cleanup configdump files for subs
       file:
-        path: "{{ ejbca_home }}/dump/subs"
+        path: "{{ ejbca_home }}/dump/dump2"
         state: absent
-
-  when: 
+  when:
+    - deploy_with_configdump is defined or deploy_with_configdump|bool
     - add_certification_authorities[0] is defined
-    - deploy_with_configdump|bool 
 
 - name: Use CLI to create the CA's
   block:
@@ -110,15 +110,45 @@
       no_log: true
       tags: create_cas
 
+    - name: Convert CSRs to PEM
+      include_role:
+        name: ansible-ejbca-deploy-pki-ext-root-sign-ca
+        tasks_from: convert_csr
+      no_log: true
+      when:
+        - saas_deployment is defined
+
     - name: Configure Suborindated CA's settings
-      include_role: 
+      include_role:
         name: ansible-ejbca-conf-ca-exts
         tasks_from: config_ca_extensions
       loop: "{{ add_certification_authorities }}"
       no_log: true
-      when: 
+      when:
         - item.rootDn != "External"
-  
-  when: 
+
+#     - name: Create local EJBCA CSR Directory
+#       delegate_to: localhost
+#       file:
+#         path: "{{ playbook_dir }}/ejbcaCSR"
+#         state: directory
+#
+#     - name: find CSR files to copy
+#       find:
+#         paths: "{{ ejbca_csr_dir_output }}"
+#         recurse: yes
+#         patterns: "*.csr"
+#         file_type: file
+#       register: files_to_copy
+#
+#     - name: Copy CSR to localhost
+#       fetch:
+#         src: "{{ ejbca_csr_dir_output }}"
+#         dest: "{{ playbook_dir }}/ejbcaCSR/"
+#         flat: yes
+#       with_items: "{{ files_to_copy.files }}"
+# #        remote_src: yes
+
+  when:
+    - not deploy_with_configdump is defined or not deploy_with_configduomp|bool
     - add_certification_authorities[0] is defined
-    - not deploy_with_configdump|bool 

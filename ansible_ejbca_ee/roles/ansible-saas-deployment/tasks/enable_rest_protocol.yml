@@ -1,0 +1,11 @@
+---
+
+- name: Enable REST Configdump protoctol
+  command: "{{ ejbca_sh }} config protocols enable 'REST Configdump'"
+  register: enable_configdump
+
+- name: REST Configudump protocol status
+  fail:
+    msg: REST Configdump protocol failed to enable! Run the play again or manually enable.
+  when: >
+    "REST Configdump: Disabled" in enable_configdump.stdout

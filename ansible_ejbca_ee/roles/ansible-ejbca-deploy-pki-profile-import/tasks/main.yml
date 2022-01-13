@@ -1,0 +1,13 @@
+---
+
+- name: Import configdump of profiles, services, & publishers
+  command: >
+    ./configdump.sh import 
+    --ignore-errors 
+    --overwrite update 
+    --non-interactive continue 
+    -l {{ ejbca_home }}/dump/dump3
+  args:
+    chdir: "{{ ejbca_home }}/dist/configdump"
+  become: yes 
+  become_user: "{{ ejbca_user }}"

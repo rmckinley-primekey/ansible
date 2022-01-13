@@ -1,0 +1,918 @@
+---
+
+organizationName: Dexcom
+organizationNameShort: "{{ organizationName }}"
+organizationNameCRL: "{{ organizationName }}"
+organizationDomainName: dexcom-c.us.prod.saas.primekey.com
+countryName: US
+superAdminCn: "21Jun2021-Skyrim-SA"
+sharedVarsLocation: ~/ansible/ansibleCacheDir
+
+#CA Names
+root_ca: DEX00CG1
+issuing_ca_1: DEX01CG1
+issuing_ca_2: DEX02CG1
+issuing_ca_3: DEX03CG1
+issuing_ca_4: DEX04CG1
+issuing_ca_5: DEX05CG1
+issuing_ca_6: DEX06CG1
+issuing_ca_7: PAR01CG1
+issuing_ca_8: PAR02CG1
+crypto_token_name: IssuingCAs
+
+#External CA
+external_root_cachain_url: 'http://ec2-35-168-139-195.compute-1.amazonaws.com/ejbca/publicweb/webdist/certdist?cmd=cachain&caid=-1582743192&format=pem'
+external_root_cachain_file: rootca.pem
+external_root_cachain_local_file: '~/Documents/Dexcom/Clinical/DEX00CG1-chain.crt'
+
+#OCSP Locator
+ocsp_locator: https://dexcom-c.us.saas.primekey.com/ejbca/publicweb/status/ocsp
+
+#CDPs
+ca_cdp: https://dexcom-c.us.saas.primekey.com/ejbca/publicweb/crls
+
+# HSM vars
+cloudhsm_home: /opt/cloudhsm
+cloudhsm_client_url: https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/EL7
+cloudhsm_client_file: cloudhsm-client-latest.el7.x86_64.rpm
+cloudhsm_dest: /opt
+cloudhsm_pkcs11_url: https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/EL7
+cloudhsm_pkcs11_file: cloudhsm-client-pkcs11-latest.el7.x86_64.rpm
+cloudhsm_service: cloudhsm-client
+cloudhsm_ip: '172.16.2.223'
+hsm_config_files: '{{ playbook_dir }}/hsm_config_files'
+controller_source: '/Users/jtgarner/Documents/Training'
+customerCA_cert: customerCA.crt
+keystore_pass: 'ejbca_issuing:QDwKDx72*02cigfd'
+crypto_type: Pkcs11NgCryptoToken
+hsm_shared_library: '/opt/cloudhsm/lib/libcloudhsm_pkcs11.so'
+slot_identifier_value: cavium
+slot_identifier_type: "SLOT_LABEL"
+clienttoolbox_key_generation: false
+
+# EJBCA version and deployment info
+ejbca_version: 7.6.0
+
+# Initialize a CA using configdump instead of the CLI. This works for CA's that are not being signed by
+# an external CA. When using this option a crypto token is created in EJBCA, and then the CA is imported
+# using configdump and initialized. This can be used for the Management CA, Roots, and Sub CA's on the same
+# EJBCA node. As stated this cannot be used for externally signed CA's at this time.
+configdump_directory_structure: "{{ configdump_dir_structure }}"
+configdump_import_files: "{{ configdump_files }}"
+
+configdump_dir_structure:
+  - "{{ ejbca_home }}/dump/dump1/certificate-profiles"
+  - "{{ ejbca_home }}/dump/dump1/extended-key-usage"
+  - "{{ ejbca_home }}/dump/dump1/certification-authorities"
+  - "{{ ejbca_home }}/dump/dump2/custom-certificate-extensions"
+  - "{{ ejbca_home }}/dump/dump2/certificate-profiles"
+  - "{{ ejbca_home }}/dump/dump2/certification-authorities"
+  - "{{ ejbca_home }}/dump/dump2/services"
+  - "{{ ejbca_home }}/dump/dump3/certificate-profiles"
+  - "{{ ejbca_home }}/dump/dump3/certification-authorities"  
+  - "{{ ejbca_home }}/dump/dump3/end-entity-profiles"
+  - "{{ ejbca_home }}/dump/dump3/services"
+
+configdump_files:
+  # - src: 'cp-RootCA-G1.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/dump1/certificate-profiles/RootCA-{{ organizationNameShort }}-G1.yaml'
+  - src: 'cp-EccRootCa-G1.yaml.j2'
+    dest: '{{ ejbca_home }}/dump/dump1/certificate-profiles/EccRootCA-{{ organizationNameShort }}-G1.yaml'
+  - src: 'cp-EccSubCa-G1.yaml.j2'
+    dest: '{{ ejbca_home }}/dump/dump1/certificate-profiles/EccSubCA-{{ organizationNameShort }}-G1.yaml'
+  # - src: 'extended-key-usages.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/dump1/extended-key-usage/extended-key-usages.yaml'
+  #   # Files for the 2nd dump import
+  # # - src: 'cp-SubCA-G1.yaml.j2'
+  # #   dest: '{{ ejbca_home }}/dump/dump2/certificate-profiles/SubCA-{{ organizationNameShort }}-G1.yaml'
+  - src: 'cp-EccSubCa-G1.yaml.j2'
+    dest: '{{ ejbca_home }}/dump/dump2/certificate-profiles/EccSubCA-{{ organizationNameShort }}-G1.yaml'
+  - src: 'service-DailyCRLUpdate.yaml.j2'
+    dest: '{{ ejbca_home }}/dump/dump2/services/DailyCRLUpdate.yaml'
+  # - src: 'cp-tlsPeerConnector.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/dump2/certificate-profiles/tlsPeerConnector.yaml'
+  # - src: 'ee-tlsPeerConnMgmt.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/dump2/end-entity-profiles/tlsPeerConnMgmt.yaml'
+  #   # Files for the 3rd dump import
+  # - src: 'ee-tlsServerOrg.yaml.j2'
+    # Files for External VA
+  # - src: 'service-ocspService.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/va/services/ocspService.yaml'
+    # Files for External RA
+  # - src: 'role-ra-peer-connection.yaml.j2'
+  #   dest: '{{ ejbca_home }}/dump/ra/admin-roles/role-ra-peer-connection.yaml'
+
+use_p11ng: true
+use_liquidsec: false
+use_aws_cloudhsm: true
+
+# CRL Update Service Worker Settings
+crl_service_time_int: 5
+crl_service_time_unit: MINUTES
+
+# Add the management CA to HTTP trust chain file. 
+add_mgmt_ca: false
+
+# Create CRL and AIA folder symbolic links for webserver to host these files
+httpd_create_aia_crl_dir: false
+enable_crl_crontab: false
+
+root_add_certification_authorities:
+  - caname: "{{ root_ca }}"
+    certprofile: "EccRootCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ root_ca }},O=Dexcom,C=US"
+    subjectaltname: ""
+    validity: "9132"
+    validity_yml: "25y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Root+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Root+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 15552000000
+    crlPeriod_yml: 12mo
+    crlIssueInterval: 0
+    crlIssueInterval_yml: 6m
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: false
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    cryptotoken_enable_auto_activate: false
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token:
+      - key_label: "signKey0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: default
+      - key_label: "testKey0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: test
+
+sub_add_certification_authorities:
+  - caname: "{{ issuing_ca_1 }}"
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    eeprofile: 'ExternalCA'
+    dn: "CN={{ issuing_ca_1 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_1 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_1 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_1 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_2 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_2 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_2 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_2 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_2 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_3 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_3 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_3 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_3 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_3 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_4 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_4 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_4 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_4 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_4 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_5 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_5 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_5 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_5 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_5 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_6 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_6 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_6 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_6 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_6 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_7 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_7 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_7 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_7 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_7 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+  - caname: "{{ issuing_ca_8 }}"
+    eeprofile: 'ExternalCA'
+    certprofile: "EccSubCA-{{ organizationNameShort }}-G1"
+    dn: "CN={{ issuing_ca_8 }},O=Dexcom,C=US"
+    rootDn: External
+    root_ca_name: "{{ root_ca }}"
+    subjectaltname: ""
+    validity: "3650"
+    validity_yml: "15y"
+    policy: "null"
+    signalg: "SHA256withECDSA"
+    serial_number_octet_size: 20
+    pre_produce_ocsp_responses: false
+    store_responses_on_demand: false
+    use_append_only_table: false
+    use_utf8_in_policy_notice_text: false
+    defaultCRLDP: "{{ ca_cdp }}/"
+    defaultOCSPServiceLocator: "{{ ocsp_locator }}"
+    authorityInformationAccess: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    certificateAiaDefaultCaIssuerUri: "http://aia.{{ organizationDomainName }}/ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3d{{ organizationNameCRL }}+Issuing+CA+G1%2cOU%3dCertification+Authorities%2cO%3d{{ organizationNameCRL }}%2cC%3d{{ countryName }}&level=1"
+    crlPeriod: 345600000
+    crlPeriod_yml: 4d
+    crlIssueInterval: 86400000
+    crlIssueInterval_yml: 1d
+    crl_overlap_time: 600000
+    crl_overlap_time_yml: 0m
+    delta_crl_period: 0m
+    useLdapDnOrder: false
+    enforce_unique_public_keys: true
+    enforce_key_renewal: true
+    enforce_unique_dn: true
+    user_storage: true
+    certificate_storage: true
+    accept_revocations_for_non_existing_entries: false
+    finish_user: true
+    ca_healthcheck_enabled: true
+    request_processor: null
+    external_caname: "{{ root_ca }}"
+    external_root_cachain_local_repository: true
+    external_signed_ca_cert_file_local_repository: true 
+    external_root_cachain_local_file: "{{ external_root_cachain_local_file }}"
+    external_root_cachain_url: "{{ external_root_cachain_url }}"
+    external_root_cachain_file: "{{ external_root_cachain_file }}"
+    external_signed_ca_cert_file_url:
+    external_signed_ca_cert_file:
+    cryptotoken_enable_auto_activate: true
+    token: PEM
+    entity_pass: "{{ encrypted_entity_pass | default ('ejbca') }}"
+    tokentype: "{{ crypto_type }}"
+    tokenpass: "{{ keystore_pass }}"
+    slot_identifier_type: "{{ slot_identifier_type }}"
+    slot_identifier_value: "{{ slot_identifier_value }}"
+    force_used_slots: true
+    crypto_token_name: "{{ crypto_token_name }}"
+    crypto_token:
+      - key_label: "signKey{{ issuing_ca_8 }}0001"
+        key_size: secp256r1
+        key_type: "ECDSA"
+        type: sign
+      - key_label: "defaultKey{{ issuing_ca_8 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: default
+      - key_label: "testKey{{ issuing_ca_8 }}0001"
+        key_size: secp256r1
+        key_type: "EDCSA"
+        type: test
+
+certificate_profiles:
+  - cpname: test1
+    type: 'End Entity'
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 2048
+    signature_algorithm: SHA256WithRSA
+    validity: 3y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 'Client Authentication'
+      - name: 'Server Authentication'
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: false
+    crl_distribution_point_uri: 'http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl'
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: false
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia/CertsIssuedToEntMPIssuingCA.p7c'
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights:
+      - name: DG3
+      - name: DG4
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'
+
+  - cpname: test2
+    type: 'End Entity'
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 2048
+    signature_algorithm: SHA256WithRSA
+    validity: 3y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 'Client Authentication'
+      - name: 'Server Authentication'
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: false
+    crl_distribution_point_uri: 'http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl'
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: false
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia/CertsIssuedToEntMPIssuingCA.p7c'
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights:
+      - name: DG3
+      - name: DG4
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'
+ 
+  - cpname: test3
+    type: 'End Entity'
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 2048
+    signature_algorithm: SHA256WithRSA
+    validity: 3y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 'Client Authentication'
+      - name: 'Server Authentication'
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: false
+    crl_distribution_point_uri: 'http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl'
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: false
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia/CertsIssuedToEntMPIssuingCA.p7c'
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights:
+      - name: DG3
+      - name: DG4
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'
+
+end_entity_profiles:
+  - eename: test1
+    version: 1
+    email_used: false
+    description: 'EE Test'
+    default_ca: 'DHS ENPE PREPROD MP CA G1'
+    available_cas:
+      - ca: 'DHS ENPE PREPROD MP CA G1'
+      - ca: 'DHS MGMT ENPE PREPRD MP CA G1'
+      - ca: 'ManagementCA'
+    default_certificate_profile: test1
+    available_certificate_profiles:
+      - name: test1
+      - name: test2
+      - name: test3
+    default_token_type: 'User Generated'
+    available_token_types:
+      - type: 'User Generated'
+      - type: 'PKCS12 File'
+      - type: 'JKS File'
+      - type: 'PEM File'
+    subject_dn:
+      CN:
+        - required: true
+      OU:
+        - required: true
+          modifiable: false
+          name: Devices
+        - required: true
+          modifiable: false
+          name: 'ENPE PKI'
+        - required: true
+          modifiable: false
+          name: 'Department of Homeland Security'
+      O:
+        - required: true
+          modifiable: false
+          name: 'U.S. Governement'
+      C:
+        - required: true
+          modifiable: false
+          name: US
+    subject_alternative_name:
+        - type: DNSNAME
+          name: 'false'
+        - type: DNSNAME  
+          name: 'false'
+        - type: DNSNAME
+          name: 'false'
+        - type: DNSNAME
+          name: 'false'        
+        - type: IPADDRESS
+          name: 'false'
+    

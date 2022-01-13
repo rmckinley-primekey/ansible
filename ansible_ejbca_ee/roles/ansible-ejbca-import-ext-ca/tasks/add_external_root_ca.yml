@@ -1,49 +1,99 @@
 ---
 
-- name: Check if {{ item.external_caname }} is already in EJBCA
-  command: >
-    {{ ejbca_sh }} ca listcas 
-  no_log: true
-  become: yes
-  become_user: "{{ ejbca_user }}"
-  register: check_list_of_cas
-  failed_when: check_list_of_cas.rc >= 2
-  changed_when: check_list_of_cas.rc == 0
-
-- name: Import External CA if it is not in EJBCA
+- name: Check for External CA in EJBCA
   block:
 
-    - name: Download external CA chain for creating an External CA {{ item.caname }}
-      uri:
-        url: "{{ item.external_root_cachain_url }}"
-        validate_certs: no
-        dest: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
-        creates: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
-        owner: "{{ ejbca_user }}"
-        group: "{{ ejbca_group }}"
-      no_log: true
-      when: not item.external_root_cachain_local_repository|bool
-
-    - name: Upload external CA chain from Ansible controller for creating an External CA {{ item.caname }}
-      copy:
-        src: "{{ item.external_root_cachain_local_file }}"
-        dest: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
-        owner: "{{ ejbca_user }}"
-        group: "{{ ejbca_group }}"
-      no_log: true
-      when: item.external_root_cachain_local_repository|bool
- 
-    - name: Import External CA - {{ item.external_caname }}
+    - name: Check if {{ item.external_caname }} is already in EJBCA
       command: >
-        {{ ejbca_sh }} ca importcacert
-        --caname {{ item.external_caname }}
-        -f /var/tmp/{{ item.external_root_cachain_file | basename }}
+        {{ ejbca_sh }} ca listcas
       no_log: true
       become: yes
       become_user: "{{ ejbca_user }}"
-      register: import_external_ca
-      failed_when: import_external_ca.rc >= 2
-      changed_when: import_external_ca.rc == 0
+      register: check_list_of_cas
+      failed_when: check_list_of_cas.rc >= 2
+      changed_when: check_list_of_cas.rc == 0
 
-  when: 
-    - item.external_caname not in check_list_of_cas.stdout
+    - name: Import External CA if it is not in EJBCA
+      block:
+
+        - name: Download external CA chain for creating External CA {{ item.external_caname }}
+          uri:
+            url: "{{ item.external_root_cachain_url }}"
+            validate_certs: no
+            dest: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
+            creates: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
+            owner: "{{ ejbca_user }}"
+            group: "{{ ejbca_group }}"
+          no_log: true
+          when: not item.external_root_cachain_local_repository|bool
+
+        - name: Upload external CA chain from Ansible controller for creating an External CA {{ item.caname }}
+          copy:
+            src: "{{ item.external_root_cachain_local_file }}"
+            dest: "/var/tmp/{{ item.external_root_cachain_file | basename }}"
+            owner: "{{ ejbca_user }}"
+            group: "{{ ejbca_group }}"
+          no_log: true
+          when: item.external_root_cachain_local_repository|bool
+
+        - name: Import External CA - {{ item.external_caname }}
+          command: >
+            {{ ejbca_sh }} ca importcacert
+            --caname {{ item.external_caname }}
+            -f /var/tmp/{{ item.external_root_cachain_file | basename }}
+          no_log: true
+          become: yes
+          become_user: "{{ ejbca_user }}"
+          register: import_external_ca
+          failed_when: import_external_ca.rc >= 2
+          changed_when: import_external_ca.rc == 0
+
+      when:
+        - item.external_caname not in check_list_of_cas.stdout
+
+  when:
+    - saas_deployment is not defined
+
+# SaaS Deployment
+- name: Check for External CA in EJBCA
+  block:
+
+    - name: Check if {{ item.external_caname }} is already in EJBCA
+      command: >
+        {{ ejbca_sh }} ca listcas
+      no_log: true
+      register: check_list_of_cas
+      failed_when: check_list_of_cas.rc >= 2
+      changed_when: check_list_of_cas.rc == 0
+
+    - name: Import External CA if it is not in EJBCA
+      block:
+
+        - name: Upload external CA chain from Ansible controller for creating an External CA {{ item.caname }}
+#          delegate_to: localhost
+          shell: >
+            cat "{{ local_cache }}/ejbacCaCerts/{ item.external_caname }}.crt" | {{ container_cli }} "--" sh -c "cat >
+            /var/tmp/{{ item.external_caname | basename }}"
+          when: post_signing is defined
+
+        - name: Upload external CA chain from Ansible controller for creating an External CA {{ item.caname }}
+          shell: >
+            cat "{{ deployment_cache }}/ejbacCaCerts/{ item.external_caname }}.crt" | {{ container_cli }} "--" sh -c "cat >
+            /var/tmp/{{ item.external_caname | basename }}"
+          when: post_signing is not defined
+
+        - name: Import External CA - {{ item.external_caname }}
+          command: >
+            {{ ejbca_sh }} ca importcacert
+            --caname {{ item.external_caname }}
+            -f /var/tmp/{{ item.external_root_cachain_file | basename }}
+          no_log: true
+          register: import_external_ca
+          failed_when: import_external_ca.rc >= 2
+          changed_when: import_external_ca.rc == 0
+
+      when:
+        - item.external_caname not in check_list_of_cas.stdout
+
+  when:
+    - saas_deployment is defined

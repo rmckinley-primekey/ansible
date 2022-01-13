@@ -1,0 +1,23 @@
+---
+
+- name: Set CDPs on Certifcate Authorities
+  block:
+
+    - name: Get Hash value
+      delegate_to: localhost
+      debug: var=item
+      with_file:
+        - "{{ local_cache }}/cdps/{{ item.caname }}_skid_hash"
+      register: ca_skid_hash
+
+    - name: Create CA sKID Hash variable
+      set_fact:
+        ca_skid_hash: "{{ ca_skid_hash.results.0.item }}"
+
+    - name: Set CDP
+      command: >
+        {{ ejbca_sh }} ca editca --caname {{ item.caname }} --field defaultCRLDistPoint
+        --value http://{{ issuing_fqdn }}/ejbca/publicweb/crls/search.cgi?sKIDHash={{ ca_skid_hash }}
+      register: issugin_cdp_change
+
+  when: saas_deployment is defined

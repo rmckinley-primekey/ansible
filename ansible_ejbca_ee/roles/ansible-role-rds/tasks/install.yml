@@ -11,8 +11,7 @@
   when: (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7") or
         (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8") or
         (ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] == "8") or 
-        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
-        (ansible_facts['distribution'] == "Rocky" and ansible_facts['distribution_major_version'] == "8")
+        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8")
 
 - name: Ensure "module_hotfixes=1 is in section "[MariaDB]" in specified file
   ini_file:
@@ -24,7 +23,7 @@
   tags: mariadb
   when: (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8") or
         (ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] == "8") or 
-        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") 
+        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8")
 
 - name: Install packages CentOS 7
   package:
@@ -42,7 +41,7 @@
   tags: mariadb
   when: (ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] == "7") 
 
-- name: Install packages {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}
+- name: Install packages CentOS/RHEL 8
   package:
     name: "{{ item }}"
     state: installed
@@ -50,5 +49,4 @@
   tags: mariadb
   when: (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8") or
         (ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] == "8") or 
-        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
-        (ansible_facts['distribution'] == "Rocy" and ansible_facts['distribution_major_version'] == "8")
+        (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8")

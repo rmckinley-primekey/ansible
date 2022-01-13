@@ -1,0 +1,150 @@
+---
+
+root_node_cert_profiles:
+
+  - cpname: RootCA-{{ organizationNameShort }}-G3
+    type: Root CA
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 4096
+    signature_algorithm: SHA256WithRSA
+    validity: 20y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+      - name: 'CRL Sign'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: true
+    crl_distribution_point_uri: 
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: true
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia'
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights_used: false
+    cvc_access_rights:
+      - name: 
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'
+
+  - cpname: SubCA-{{ organizationNameShort }}-G3
+    type: Sub CA
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 4096
+    signature_algorithm: SHA256WithRSA
+    validity: 10y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+      - name: 'CRL Sign'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: true
+    crl_distribution_point_uri:
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: true
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia'
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights_used: false
+    cvc_access_rights:
+      - name: 
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'
+
+sub_node_cert_profiles:
+
+  - cpname: tlsServer
+    type: 'End Entity'
+    available_key_algorithms: RSA
+    available_elliptic_curves: ANY_EC_CURVE
+    available_bit_lengths: 4096
+    signature_algorithm: SHA256WithRSA
+    validity: 3y
+    description: 'Certificate profile test'
+    key_usage:
+      - name: 'Digital Signature'
+      - name: 'Key Encryption'
+    extended_key_usage_used: false
+    extended_key_usage:
+      - name: 'Client Authentication'
+      - name: 'Server Authentication'
+    certificate_policies_used: false
+    certificate_policies:
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.1.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.2.1
+        qualifier_id: ''
+        qualifier: ''
+      - policy_id: 2.16.840.1.101.3.2.1.15.20.3.1
+        qualifier_id: ''
+        qualifier: ''
+    subject_alternative_name_used: false
+    issuer_alternative_name_used: false
+    crl_distribution_point_used: true
+    crl_use_ca_defined_settings: true
+    crl_distribution_point_uri: 'http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl'
+    crl_issuer: ''
+    authority_information_access_used: true
+    ocsp_service_locator_URL_defined: true
+    ocsp_issuer_url_defined: true
+    ocsp_issuer_urls:
+      - url: 'http://aia.enpepreprod.dimc.dhs.gov/aia/CertsIssuedToEntMPIssuingCA.p7c'
+    certificate_extensions_used: false
+    certificate_extensions:
+      - name: inhibitAnyPolicy
+      - name: policyConstraints
+    ocsp_no_check: false
+    cvc_access_rights_used: false
+    cvc_access_rights:
+      - name: 
+    ldap_dn_order: false
+    available_cas:
+      - ca: 'Any CA'

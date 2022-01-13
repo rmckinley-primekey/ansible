@@ -1,0 +1,10 @@
+---
+
+- hosts: localhost
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/insulet_eu_deployment
+  vars:
+    - prep_config_dump: true        
+  roles:
+    - ansible-saas-deployment

@@ -12,13 +12,12 @@ Use Append-Only Table: {{ item.use_append_only_table | default('false') }}
 CA Token:
   Signature Algorithm: {{ item.signalg }}
   Encryption Algorithm: {{ item.signalg }}
-  Crypto Token: {{ item.caname }}
+  Crypto Token: {{ item.crypto_token_name }}
 {% for val in item.crypto_token %}
 {% if 'default' == val.type %}
   Default Key: {{ val.key_label }}
   Key Encryption Key: {{ val.key_label }}
-{% endif %}
-{% if 'sign' == val.type %}
+{% endif %}{% if 'sign' == val.type %}
   Certificate Signing Key: {{ val.key_label }}
   CRL Signing Key: {{ val.key_label }}
 {% endif %}{% if 'test' == val.type %}  

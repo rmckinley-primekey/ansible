@@ -34,6 +34,28 @@
   loop_control:
     label: "{{ item.dest }}"
 
+# - name: Prepare configdump certificate profiles template files for importing
+#   template:
+#     src: cp-template.yaml.j2
+#     dest: "{{ ejbca_home }}/dump/dump3/certificate-profiles/{{ item.cpname }}"
+#     owner: "{{ ejbca_user }}"
+#     group: "{{ ejbca_group }}"
+#     mode: 0664
+#   loop: "{{ certificate_profiles }}"
+#   loop_control:
+#     label: "{{ item.cpname }}"
+
+# - name: Prepare configdump end-entity profiles template files for importing
+#   template:
+#     src: ee-template.yaml.j2
+#     dest: "{{ ejbca_home }}/dump/dump3/end-entity-profiles/{{ item.eename }}"
+#     owner: "{{ ejbca_user }}"
+#     group: "{{ ejbca_group }}"
+#     mode: 0664
+#   loop: "{{ end_entity_profiles }}"
+#   loop_control:
+#     label: "{{ item.eename }}"
+
 - name: Create CA publisher directory structure
   file:
     path: "{{ ejbca_home }}/dump/addPubToCA/certification-authorities"

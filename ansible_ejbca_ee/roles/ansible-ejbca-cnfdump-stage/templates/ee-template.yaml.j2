@@ -1,0 +1,80 @@
+Object Type: End Entity Profile
+Version: 1
+Name: {{ item.eename}}
+E-Mail Used: {{ item.email_used }}
+Description: {{ item.description }}
+Default CA: {{ item.default_ca }}
+Available CAs:
+{% for val in item.available_cas %}
+- {{ val.ca }}
+{% endfor %}
+Default Certificate Profile: {{ item.default_certificate_profile }}
+Available Certificate Profiles:
+{% for val in item.available_certificate_profiles %}
+- {{ val.name }}
+{% endfor %}
+Default Token Type: {{ item.default_token_type }}
+Available Token Types:
+{% for val in item.available_token_types %}
+- {{ val.type }}
+{% endfor %}
+Issuance Revocation Reason Modifiable: false
+CA Browser Forum Organization Identifier Modifiable: false
+Subject DN:
+{% if item.subject_dn.CN is defined %}
+  CN:
+{% for cn in item.subject_dn.CN %}
+  - required: {{ cn.required|default('true') }}
+    modifiable: {{ cn.modifiable|default('true') }}
+{% if cn.name is defined %}
+    value:
+    - {{ cn.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.OU is defined %}
+  OU:
+{% for ou in item.subject_dn.OU %}
+  - required: {{ ou.required|default('true') }}
+    modifiable: {{ ou.modifiable|default('true') }}
+{% if ou.name is defined %}
+    value:
+    - {{ ou.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.O is defined %}
+  O:
+{% for o in item.subject_dn.O %}
+  - required: {{ o.required|default('true') }}
+    modifiable: {{ o.modifiable|default('true') }}
+{% if o.name is defined %}
+    value:
+    - {{ o.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.subject_dn.C is defined %}
+  C:
+{% for c in item.subject_dn.C %}
+  - required: {{ c.required|default('true') }}
+    modifiable: {{ c.modifiable|default('true') }}
+{% if c.name is defined %}
+    value:
+    - {{ c.name|default('') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+Subject Alternative Name:
+  DNSNAME:
+{% for i2 in item.subject_alternative_name %}
+{% if 'DNSNAME' == i2.type %}
+  - Required: {{ i2.name|default('false') }}
+{% endif %}
+{% endfor %}
+  IPADDRESS:
+{% for i2 in item.subject_alternative_name %}
+{% if 'IPADDRESS' == i2.type %}
+  - Required: {{ i2.name|default('false') }}
+{% endif %}
+{% endfor %}

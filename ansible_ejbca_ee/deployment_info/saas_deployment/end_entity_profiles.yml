@@ -1,0 +1,69 @@
+---
+
+root_node_ee_profiles:
+  - eename: ExternalCA
+    version: 1
+    email_used: false
+    description: 'EE Test'
+    default_ca: 'RT00-G3'
+    available_cas:
+      - ca: AUT00-G3
+    default_certificate_profile: SubCA-{{ organizationNameShort }}-G3
+    available_certificate_profiles:
+      - name: SubCA-{{ organizationNameShort }}-G3
+    default_token_type: 'User Generated'
+    available_token_types:
+      - type: 'User Generated'
+    subject_dn:
+      CN:
+        - required: true
+          modifiable: true
+      OU:
+        - required: false
+          modifiable: false
+          name: 'C2 Company'
+      O:
+        - required: false
+          modifiable: false
+          name: 'Automation'
+      C:
+        - required: false
+          modifiable: false
+          name: US
+    subject_alternative_name:
+        - type: DNSNAME
+          name: 'false'
+
+sub_node_ee_profiles:
+  - eename: tlsServer
+    version: 1
+    email_used: false
+    description: 'EE Test'
+    default_ca: 'PrimeKey-Sub-CA'
+    available_cas:
+      - ca: PrimeKey-Sub-CA
+    default_certificate_profile: tlsServer
+    available_certificate_profiles:
+      - name: tlsServer
+    default_token_type: 'User Generated'
+    available_token_types:
+      - type: 'User Generated'
+    subject_dn:
+      CN:
+        - required: true
+          modifiable: true
+      OU:
+        - required: true
+          modifiable: false
+          name: 'C2 Company'
+      O:
+        - required: true
+          modifiable: false
+          name: 'PrimeKey'
+      C:
+        - required: true
+          modifiable: false
+          name: US
+    subject_alternative_name:
+        - type: DNSNAME
+          name: 'false'

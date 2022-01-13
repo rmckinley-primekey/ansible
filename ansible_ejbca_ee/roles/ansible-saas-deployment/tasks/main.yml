@@ -1,0 +1,26 @@
+---
+
+- name: Set Facts based on host
+  include_tasks: set_facts.yml
+- name: Get Container ID
+  include_tasks: get_container_id.yml
+- name: Enable Rest Protocol
+  include_tasks: enable_rest_protocol.yml
+  when: prep_config_dump is defined
+
+- name: Create Configdump files
+  include_tasks: rest_config_import.yml
+  when: prep_config_dump is defined
+
+- name: Create CA End Entities on Root
+  include_tasks: create_ca_endentities.yml
+  loop: "{{ add_certification_authorities }}"
+  when:
+    - root_node_play is defined
+    - create_end_entities is defined
+
+- name: Submit Sub Node Configdump
+  include_tasks: config_dump_post.yml
+  when:
+    - sub_node_play is defined
+    - post_signing is defined

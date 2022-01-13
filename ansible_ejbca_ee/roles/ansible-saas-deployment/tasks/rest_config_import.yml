@@ -1,0 +1,175 @@
+---
+
+
+- name: Checks for Dump directory on Ansible controller
+  delegate_to: localhost
+  stat:
+    path: "{{ playbook_dir }}/dumps"
+  register: dump_directory
+
+- name:  Create Dump Directories
+  block:
+
+    - name: Create CP dump directory on Ansible controller
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/dumps/dump1"
+        state: directory
+
+    - name: Create EE dump directory on Ansible controller
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/dumps/dump2"
+        state: directory
+
+  when: not dump_directory.stat.exists
+
+# - name: RootCA Node Config Dump
+#   block:
+#
+#     - name: Create CP configdump structure
+#       delegate_to: localhost
+#       file:
+#         path: "{{ playbook_dir }}/dumps/dump1/rootdump/{{ item }}"
+#         state: directory
+#       loop: "{{ configdump1_structure }}"
+#       loop_control:
+#         label: "{{ item }}"
+#
+#
+#     - name: Create EE configdump structure
+#       delegate_to: localhost
+#       file:
+#         path: "{{ playbook_dir }}/dumps/dump2/rootdump/{{ item }}"
+#         state: directory
+#       loop: "{{ configdump2_structure }}"
+#       loop_control:
+#         label: "{{ item }}"
+#
+# # Bug prevents certificate authority import through REST API
+#     # - name: Prepare configdump root certificate authority template file for importing
+#     #   delegate_to: localhost
+#     #   template:
+#     #     src: roles/ansible-ejbca-cnfdump-stage/templates/ca-template.yml.j2
+#     #     dest: "{{ playbook_dir }}/dumps/rootdump/certification-authorities/{{ item.caname }}"
+#     #     mode: 0664
+#     #   loop: "{{ root_add_certification_authorities }}"
+#     #   loop_control:
+#     #     label: "{{ item.caname }}"
+#
+#     - name: Prepare configdump certificate profiles template files for importing
+#       delegate_to: localhost
+#       template:
+#         src: cp-template.yaml.j2
+#         dest: "{{ playbook_dir }}/dumps/dump1/rootdump/certificate-profiles/{{ item.cpname }}"
+#         mode: 0664
+#       loop: "{{ root_node_cert_profiles }}"
+#       loop_control:
+#         label: "{{ item.cpname }}"
+#
+#     - name: Prepare configdump end-entity profiles template files for importing
+#       delegate_to: localhost
+#       template:
+#         src: ee-template.yaml.j2
+#         dest: "{{ playbook_dir }}/dumps/dump2/rootdump/end-entity-profiles/{{ item.eename }}"
+#         mode: 0664
+#       loop: "{{ root_node_ee_profiles }}"
+#       loop_control:
+#         label: "{{ item.eename }}"
+#
+#     - name: Create CP configdump zip
+#       delegate_to: localhost
+#       archive:
+#         path: "{{ playbook_dir }}/dumps/dump1/rootdump/"
+#         dest: "{{ playbook_dir }}/dumps/root_configdump_dump1.zip"
+#         format: zip
+#
+#     - name: Create EE configdump zip
+#       delegate_to: localhost
+#       archive:
+#         path: "{{ playbook_dir }}/dumps/dump2/rootdump/"
+#         dest: "{{ playbook_dir }}/dumps/root_configdump_dump2.zip"
+#         format: zip
+#
+#   when:
+#     - not dump_directory.stat.exists
+#     - root_add_certification_authorities is defined
+
+- name: SubCA Node Config Dump
+  block:
+
+    - name: Create CP configdump structure
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/dumps/dump1/subdump/{{ item }}"
+        state: directory
+      loop: "{{ configdump1_structure }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Create EE configdump structure
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/dumps/dump1/subdump/{{ item }}"
+        state: directory
+      loop: "{{ configdump2_structure }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Prepare configdump certificate profiles template files for importing
+      delegate_to: localhost
+      template:
+        src: cp-template.yaml.j2
+        dest: "{{ playbook_dir }}/dumps/dump1/subdump/certificate-profiles/{{ item.cpname }}"
+        mode: 0664
+      loop: "{{ sub_node_cert_profiles }}"
+      loop_control:
+        label: "{{ item.cpname }}"
+
+    - name: Prepare configdump end-entity profiles template files for importing
+      delegate_to: localhost
+      template:
+        src: ee-template.yaml.j2
+        dest: "{{ playbook_dir }}/dumps/dump1/subdump/end-entity-profiles/{{ item.eename }}"
+        mode: 0664
+      loop: "{{ sub_node_ee_profiles }}"
+      loop_control:
+        label: "{{ item.eename }}"
+
+    - name: Prepare CRL Updater
+      delegate_to: localhost
+      template:
+        src: roles/ansible-ejbca-cnfdump-stage/templates/service-DailyCRLUpdate.yaml.j2
+        dest: "{{ playbook_dir }}/dumps/dump1/subdump/services/CRL-Updater"
+        mode: 0664
+
+    - name: Prepare HSM Keep Alive
+      delegate_to: localhost
+      template:
+        src: roles/ansible-ejbca-cnfdump-stage/templates/service-HSM_Keepalive.yaml.j2
+        dest: "{{ playbook_dir }}/dumps/dump1/subdump/services/HSM-Keep-Alive"
+        mode: 0664
+
+    - name: Create Configdump zip
+      delegate_to: localhost
+      archive:
+        path: "{{ playbook_dir }}/dumps/dump1/subdump/"
+        dest: "{{ playbook_dir }}/dumps/sub_configdump_dump1.zip"
+        format: zip
+
+  when:
+    - not dump_directory.stat.exists
+    - sub_add_certification_authorities is defined
+
+- name: Upload Root Node ConfigDump
+  delegate_to: localhost
+  command: >
+    curl -k --cert {{ client_cert }}:{{ client_cert_pass }} --cert-type p12 -X POST "{{ root_rest_url }}"
+    -v --http1.1 -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "zipfile=@./dumps/root_configdump_dump1.zip;type=application/zip"
+    -F "initialize=true" -F "ignoreerrors=true" -F "continue=true" -F "overwrite=yes" -F resolve=useDefault
+  register: root_configdump_import
+  when:
+    - root_node_play is defined
+
+- debug:
+    var: root_configdump_import

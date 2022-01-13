@@ -1,0 +1,41 @@
+---
+
+- name: Set Deployment Cache Fact
+  set_fact:
+    deployment_cache: "{{ local_cache }}"
+  when: bastion_host is not defined
+
+- name: Set Deployment Cache Fact
+  set_fact:
+    deployment_cache: "{{ bastion_cache }}/deployment_cache"
+  when: bastion_host is defined
+
+- name: Set EJBCA CSR Directory Output Fact
+  set_fact:
+    ejbca_csr_dir_output: "{{ playbook_dir }}/ejbcaCSR"
+  when: bastion_host is not defined
+
+- name: Set EJBCA CSR Directory Output Fact
+  set_fact:
+    ejbca_csr_dir_output: "{{ deployment_cache }}/ejbcaCSR"
+  when: bastion_host is defined
+
+- name: Set EJBCA CACerts Directory Output Fact
+  set_fact:
+    ejbca_cacrt_dir_output: "{{ playbook_dir }}/ejbcaCaCerts"
+  when: bastion_host is not defined
+
+- name: Set EJBCA CACerts Directory Output Fact
+  set_fact:
+    ejbca_cacrt_dir_output: "{{ deployment_cache }}/ejbcaCaCerts"
+  when: bastion_host is defined
+
+- name: Set EJBCA CRL Directory Output Fact
+  set_fact:
+    ejbca_crl_dir_output: "{{ deployment_cache }}/ejbcaCRLs"
+  when: bastion_host is not defined
+
+- name: Set EJBCA CRL Directory Output Fact
+  set_fact:
+    ejbca_crl_dir_output: "{{ deployment_cache }}/ejbcaCRLs"
+  when: bastion_host is defined

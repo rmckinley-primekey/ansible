@@ -1,0 +1,18 @@
+---
+
+- name: Stopping Wildfly
+  service:
+    name: wildfly
+    state: stopped
+
+- name: Copy Wildfly standalone template
+  template:
+    src: "{{ playbook_dir }}/{{ datasource_template }}"
+    dest: /opt/wildfly/standalone/configuration/standalone.xml
+    owner: wildfly
+    group: wildfly
+
+- name: Starting Wildfly
+  service:
+    name: wildfly
+    state: started

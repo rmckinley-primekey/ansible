@@ -1,0 +1,13 @@
+---
+
+- name: Sign Subordinate CA CSR on EJBCA Root CA
+  include_role:
+    name: ansible-ejbca-certreq-cli
+    tasks_from: csr_cert_sign
+  loop: "{{ add_certification_authorities }}"
+  loop_control:
+    label: "{{ item.caname }}"
+  no_log: true
+  when: 
+    - add_certification_authorities[0] is defined
+    - not_saas_deployment is defined

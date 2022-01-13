@@ -1,0 +1,83 @@
+Object Type: Certificate Profile
+Version: 1
+Name: {{ item.cpname }}
+Type: {{ item.type }}
+Available Key Algorithms:
+- {{ item.available_key_algorithms }}
+Available Elliptic Curves:
+- {{ item.available_elliptic_curves }}
+Available Bit Lengths:
+- {{ item.available_bit_lengths }}
+Signature Algorithm: {{ item.signature_algorithm }}
+Validity: {{ item.validity }}
+Description: {{ item.description }}
+Allow Subject DN Override by CSR: {{ item.subject_dn_override_by_csr }}
+Allow Subject DN Override by End Entity Information: {{ item.subject_dn_override_by_ee_info }}
+Allow Validity Override: {{ item.validity_override }}
+Overridable Extension OIDs: [
+  ]
+Non-overridable Extension OIDs: [
+  ]
+Basic Constraints Used: {{ item.basic_constraints_used }}
+Key Usage:
+{% for val in item.key_usage %}
+- {{ val.name }}
+{% endfor %}
+Extended Key Usage Used: {{ item.extended_key_usage_used }}
+{% if item.extended_key_usage_used is true %}
+Extended Key Usage:
+{% for val in item.extended_key_usage %}
+- {{ val.name }}
+{% endfor %}
+{% else %}
+Extended Key Usage: [
+  ]
+{% endif%}
+Certificate Policies Used: {{ item.certificate_policies_used }}
+{% if item.certificate_policies_used is true %}
+Certificate Policies:
+{% for val in item.certificate_policies %}
+- {{ val.policy_id }}
+{% endfor %}
+{% else %}
+Certificate Policies: [
+  ]
+{% endif %}
+Subject Alternative Name Used: {{ item.subject_alternative_name_used }}
+Issuer Alternative Name Used: {{ item.issuer_alternative_name_used }}
+CRL Distribution Point Used: {{ item.crl_distribution_point_used }}
+CRL Use CA Defined Settings: {{ item.crl_use_ca_defined_settings }}
+{% if item.crl_use_ca_defined_settings is false %}
+CRL Distribution Point URI: http://crl.enpepreprod.dimc.dhs.gov/crls/DHSENPEPREPRODIntermediateCAG1.crl
+{% endif %}
+CRL Issuer: ''
+Authority Information Access Used: {{ item.authority_information_access_used }}
+OCSP Service Locator URL Is CA Defined: {{ item.ocsp_service_locator_URL_defined }}
+OCSP Issuer URL Is CA Defined: {{ item.ocsp_issuer_url_defined }}
+{% if ocsp_issuer_url_defined is true %}
+OCSP Issuer URLs:
+{% for val in item.ocsp_issuer_urls  %}
+- {{ val.url }}
+{% endfor %}{% endif %}
+{% if certificate_extensions_used is true %}
+Certificate Extensions:
+{% for val in item.certificate_extensions %}
+- {{ val.name }}
+{% endfor %}
+{% else %}{% endif %}
+OCSP No Check: {{ item.ocsp_no_check }}
+{% if item.cvc_access_rights_used is true %}
+CVC Access Rights (Inspection System):
+{% for val in item.cvc_access_rights %}
+- {{ val.name }}
+{% endfor %}{% else %}
+CVC Access Rights (Inspection System): [
+  ]
+{% endif %}
+LDAP DN Order: {{ item.ldap_dn_order }}
+Available CAs:
+{% for val in item.available_cas %}
+- {{ val.ca }}
+{% endfor %}
+Account Binding Namespace: [
+  ]

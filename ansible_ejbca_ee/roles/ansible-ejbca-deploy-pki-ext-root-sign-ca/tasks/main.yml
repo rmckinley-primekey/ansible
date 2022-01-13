@@ -9,6 +9,8 @@
   loop_control:
     label: "{{ item.caname }}"
   no_log: true
+  when:
+    - not_saas_deployment is defined
     
 - name: Sign Subordinate CA CSR on EJBCA Root CA
   include_role:

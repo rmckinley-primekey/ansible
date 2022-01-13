@@ -1,0 +1,19 @@
+---
+
+- name: Upload Root Node Configdump
+  delegate_to: localhost
+  command: >
+    curl -k --cert {{ client_cert }}:{{ client_cert_pass }} --cert-type p12 -X POST "{{ root_rest_url }}" 
+    -v --http1.1 -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "zipfile=@./dumps/root_configdump_dump2.zip;type=application/zip" 
+    -F "initialize=true" -F "ignoreerrors=true" -F "continue=true" -F "overwrite=yes" -F resolve=useDefault
+  register: root_configdump_import
+  when: add_certification_authorities == root_add_certification_authorities
+
+- name: Upload Sub Node ConfigDump
+  delegate_to: localhost
+  command: >
+    curl -k --cert {{ client_cert }}:{{ client_cert_pass }} --cert-type p12 -X POST "{{ issuing_rest_url }}" 
+    -v --http1.1 -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "zipfile=@./dumps/sub_configdump_dump1.zip;type=application/zip"
+  register: sub_configdump_import
+  when: add_certification_authorities == sub_add_certification_authorities
+  

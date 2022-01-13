@@ -5,6 +5,7 @@
   include_role: 
     name: ansible-ejbca-cnfdump-stage
     tasks_from: config_configdump
+  when: not saas_deployment is defined
 
 - name: Check deployment
   include_role: 
@@ -12,6 +13,7 @@
   vars:
     restart_wildfly: true
   tags: check_deployment
+  when: not saas_deployment is defined
 
 - name: Use Configdump to create the Root CA's
   block:
@@ -44,6 +46,14 @@
       loop_control:
         label: "{{ item.caname }}"
       no_log: true
+      when: not saas_deployment is defined
+
+    - name: Stage Root CA's to create with configdump
+      include_role:
+        name: ansible-saas_deployment
+        tasks_from: config_dump_import
+      no_log: true
+      when: saas_deployment is defined
 
     - name: Intialize Root CA's with configdump
       command: >
@@ -59,7 +69,8 @@
       become_user: "{{ ejbca_user }}"
 
   when: 
-    - deploy_with_configdump|bool and root_add_certification_authorities[0] is defined 
+    - deploy_with_configdump is defined and deploy_with_configdump|bool
+    - root_add_certification_authorities[0] is defined 
 
 - name: Use CLI to create the Root CA's
   block:
@@ -75,6 +86,7 @@
         chdir: "{{ ejbca_home }}/dist/configdump"
       become: yes 
       become_user: "{{ ejbca_user }}"
+      when: not saas_deployment is defined
       
     - name: Create crypto tokens for Root CA's
       include_role: 
@@ -109,8 +121,24 @@
       loop: "{{ root_add_certification_authorities }}"
       no_log: true
 
-  when: 
-    - root_add_certification_authorities[0] is defined and not deploy_with_configdump|bool
+    - block:
+    
+        - name: Import External CA Profiles to Root Node
+          include_role:
+            name: ansible-saas-deployment
+            tasks_from: config_dump_post
+
+        - name: Export Root CA certificate
+          include_role:
+            name: ansible-ejbca-certreq-cli
+            tasks_from: get_ca_certs
+          loop: "{{ root_add_certification_authorities }}"
+              
+      when: saas_deployment is defined
+
+  when:
+    - root_add_certification_authorities[0] is defined
+    - not deploy_with_configdump is defined or deploy_with_configduomp|bool
 
 - name: Configure EJBCA Enrollment protocols
   include_role:

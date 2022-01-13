@@ -1,0 +1,19 @@
+---
+
+#PROD ONLY
+- name: Change context
+  shell: >
+    kubectl config use-context {{ saas_context }}
+  register: change_context
+
+- name: Get Node container_id
+  shell: >
+    {% if root_node_play is defined %}
+    kubectl get pods -n "{{ domain_name }}" -l app=ejbca-root -o jsonpath='{.items[].metadata.name}'
+    {% elif  sub_node_play is defined %}
+    kubectl get pods -n "{{ domain_name }}" -o jsonpath='{.items[].metadata.name}'{% endif %}
+  register: ejbca_container_id
+
+- name: Set ejbca_container_id fact
+  set_fact:
+    ejbca_container_id: "{{ ejbca_container_id.stdout }}"

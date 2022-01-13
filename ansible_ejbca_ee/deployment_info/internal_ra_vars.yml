@@ -1,11 +1,11 @@
 ---
 
-organizationName: Solitude
+organizationName: PrimeKey
 organizationNameShort: "{{ organizationName }}"
 organizationNameCRL: "{{ organizationName }}"
-organizationDomainName: solitude.skyrim
+organizationDomainName: primekey.com
 countryName: US
-superAdminCn: "30Aug2021-Skyrim-SA"
+superAdminCn: "20-OCT-2021-Primekey-SA"
 sharedVarsLocation: ~/ansible/ansibleCacheDir
 
 peer_ca_cert_serial_numbers: "{{ lookup('file', '~/ansible/ansibleCacheDir/peer_cert_serial_numbers.yml' ) | from_yaml }}"
@@ -44,13 +44,13 @@ ejbca_jdbc_driver: https://dlm.mariadb.com/1785291/Connectors/java/connector-jav
 ejbca_jdbc_driver_checksum: sha256:f06577b19e89b33028b96cd4f031248e761de7ebc712f4ef535e268df76edb2a
 
 # EJBCA version and deployment info
-ejbca_version: 7.7.0
+ejbca_version: 7.8.0
 # If enabled Ansible controller is used as software repository for Apache Ant, EJBCA, and JDBC driver
 use_local_repository: false
-ejbca_remote_dir: ~/Downloads/PK-Software/ejbca_ee_7_7_0_RA.zip
-ejbca_software_url: http://172.16.170.133:8080/ejbca/ejbca_ee_7_7_0_RA.zip
-ejbca_src_dir_name: ejbca_ee_7_7_0_RA
-ejbca_type: RA
+ejbca_remote_dir: ~/Downloads/PK-Software/EJBCA_7.8/ejbca_ee_7_8_0_1.zip
+ejbca_software_url: http://192.168.86.43:8080/ejbca/ejbca_ee_7_8_0_1.zip
+ejbca_src_dir_name: ejbca_ee_7_8_0_1
+ejbca_type: CA
 
 # HSM Configuration
 # Use softhsm for PKCS11
@@ -121,24 +121,21 @@ ejbca_conf_healtcheck_authorizedips: 127.0.0.1
 # Set the hostname for configuring OAuth Reply URL
 web_httpserver_hostname: "{{ httpd_identity_info.id_name }}"
 
-identity_info:
-  - dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,cn=ra01.{{ organizationDomainName }}"
-    name: "ra01.{{ organizationDomainName }}"
-    full_dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,cn=ra01.{{ organizationDomainName }}"
-    username: ra_httpd_tls
-    password: "{{ encrypted_httpd_identity_password | default('foo123') }}"
-    altname: "dNSName=ra01.{{ organizationDomainName }}, dNSName=enroll.{{ organizationDomainName }}, dNSName=api.enroll.{{ organizationDomainName }}, dNSName=enrolls.{{ organizationDomainName }}"
-    certprofile: tlsServerClientAuth
-    eeprofile: "tlsServer{{ organizationNameShort }}"
-    caname: "{{ organizationNameShort }}-Sub-CA"
-    token: PEM
-    useType: ra
-
+httpd_identity_info:
+  id_dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,CN=ca01.{{ organizationDomainName }}"
+  id_name: "ca01.{{ organizationDomainName }}"
+  id_full_dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,CN=ca01.{{ organizationDomainName }}"
+  id_username: ra_httpd_tls
+  id_password: "{{ encrypted_httpd_identity_password | default('foo123') }}"
+  id_altname: "dNSName=ca01.{{ organizationDomainName }}, dNSName=ca.{{ organizationDomainName }}, dNSName=sapi.ca.{{ organizationDomainName }}, dNSName=api.ca.{{ organizationDomainName }}"
+  id_certprofile: tlsServerClientAuth
+  id_eeprofile: "tlsServer{{ organizationName }}"
+  id_caname: "{{ organizationName }}-Sub-CA"
 
 httpd_create_aia_crl_dir: false
-httpd_identity_info:
-  id_name: "{{ identity_info[0].name }}"
-  id_ca_cert_file: "{{ identity_info[0].caname }}.crt"
+# httpd_identity_info:
+#   id_name: "{{ identity_info[0].name }}"
+#   id_ca_cert_file: "{{ identity_info[0].caname }}.crt"
 
 # Enable/Disable using the HTTPD CRL mapping to use friendly names in the CRL file that are retreived from 
 # EJBCA CRL cache in the ejbca/publicweb/crls/search.cgi

@@ -1,0 +1,21 @@
+---
+
+# This play is designed for an Issuing CA node with signed certificates
+# Create a folder in the playbook directory called "ejbcaCSR" and place the signed Issuing CA certs before running the play
+# Ensure the file nameing is caname.crt
+
+- hosts: prod
+  pre_tasks:
+    - include_vars:
+        dir: deployment_info/insulet_eu_deployment
+  vars:
+    - add_certification_authorities: "{{ sub_add_certification_authorities }}"
+    - sub_node_play: true
+    - prep_config_dump: true
+    - post_signing: true
+    - saas_context: arn:aws:eks:eu-north-1:645750012002:cluster/production-eu-north-1
+    - domain_name: eu-prod-omnipodcloud
+  roles:
+    - ansible-saas-deployment
+    - ansible-ejbca-deploy-pki-ext-signed-sub-3
+    - ansible-ejbca-crl-dp

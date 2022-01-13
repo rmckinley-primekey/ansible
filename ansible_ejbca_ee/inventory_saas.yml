@@ -1,0 +1,12 @@
+dev:
+  hosts:
+    saasdev_bastion1:
+      ssh_args: ~/.ssh/config
+  vars:
+    bastion_host: true
+prod:
+  hosts:
+    saas_bastion1:
+      ssh_args: ~/.ssh.config
+  vars:
+    bastion_host: true
